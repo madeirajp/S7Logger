@@ -9,6 +9,9 @@ import sys
 # If there is need to debug, enable this
 #logging.basicConfig(level=logging.DEBUG)
 
+# IP-address of the PLC here
+ipaddress = "123.123.123.123"
+
 # areas['PE'] = Process Inputs
 # byte is the first number and bit is the second
 # i.e. ReadInput(plc,1,0,S7WLBit) will read Bool from %I1.1
@@ -27,7 +30,7 @@ if __name__=="__main__":
     plc = c.Client()
 
     # Connect to Distribution station IP, rack 0, slot 2
-    plc.connect('169.254.0.101',0,2)
+    plc.connect(ipaddress,0,2)
 
     # Initialize edge flags
     magSolenoidEdge = True
