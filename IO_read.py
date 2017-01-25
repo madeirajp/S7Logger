@@ -136,17 +136,22 @@ def logToFile():
         # Edges
         #edge = thisIO+"Edge"
 
-        # Logging only if this IO is True
+        # Logging only if this IO is True and edge flag is on
         if value == True and thisIO.returnEdgeFlag():
 
-            # write to file
+            # write to file the name and type
             f.write(thisIO.returnName() + "," + thisIO.returnIoType())
+
+            # and of cource date- and timestamp, duh
             f.write("," + datestamp + "," + timestamp + '\n')
+
+            # also print something to console
             print('\n' + thisIO.returnName() + " event logged")
-            # Edge flag to false
+            
+            # reset the edge flag
             thisIO.resetEdgeFlag()
 
-        # From falling edge "reset" the edge flags to True
+        # From falling edge set the edge flag
         if value == False:
         	thisIO.setEdgeFlag()
 
@@ -169,26 +174,31 @@ if __name__=="__main__":
         print names[x]
     print "#######################" + "\n"
 
-    # Scanning loop
-    while True:
-        
-        timestamp = time.strftime('%H:%M:%S')
+    try:
+	    # Scanning loop
+	    while True:
+	        
+	        timestamp = time.strftime('%H:%M:%S')
 
-        # Let the user know that scanning is active
-        sys.stdout.write('\r Scanning PLC IOs on ' + timestamp)  
-        #sys.stdout.flush()
+	        # Let the user know that scanning is active
+	        sys.stdout.write('\r Scanning PLC IOs on ' + timestamp)  
+	        #sys.stdout.flush()
 
-        # Open the file where we log the data
-        f = open('workfile.txt', 'a')
+	        # Open the file where we log the data
+	        f = open('workfile.txt', 'a')
 
-        # calling logging function
-        logToFile()
+	        # calling logging function
+	        logToFile()
 
-        # Close the workfile
-        f.close()
+	        # Close the workfile
+	        f.close()
 
-        # Wait for five seconds
-        time.sleep(0.1)
+	        # Wait for five seconds
+	        time.sleep(0.1)
 
-    # Disconnect from plc
-    plc.disconnect()
+    except KeyboardInterrupt:
+    	logFile = open('workfile.txt', 'r')
+    	print "\n \n" + "Thank you for using S7Logger! Here are the contents of the workfile: " + "\n"
+    	for line in logFile:
+    		print line
+        plc.disconnect()
