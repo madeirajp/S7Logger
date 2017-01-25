@@ -1,6 +1,6 @@
-# this is fine #
 # for taglists.txt: show all columns, select all (CTRL+A) and paste to notepad
 # columns should be in following order: Name, Tag table, Data type, Address
+# tags export to xlsx is not supported
 
 # If there is need to debug, enable this
 #logging.basicConfig(level=logging.DEBUG)
@@ -42,7 +42,6 @@ class IOObject:
     def displayCount(self):
         print IOObject.IOCount
 
-    # display something else
     def returnName(self):
         return self.name
 
@@ -66,28 +65,26 @@ class IOObject:
     def resetEdgeFlag(self):
         self.edgeFlag = False
 
+    def returnEdgeFlag(self):
+    	return self.edgeFlag
+
     def readIO(self):
-	    result = plc.read_area(areas['PA'],0,int(self.byte),S7WLBit)
-	    #print "IO read"
-	    return get_bool(result,0,int(self.bit))
+
+    	# PA = Process outpus
+    	if self.ioType == "Q":
+	    	result = plc.read_area(areas['PA'],0,int(self.byte),S7WLBit)
+        if self.ioType == "I":
+		    result = plc.read_area(areas['PE'],0,int(self.byte),S7WLBit)
+
+	    # return the value
+        return get_bool(result,0,int(self.bit))
 
     # for printing human-readable things about our objects
     def __str__(self):
         return "%s %s %s %s %s" % (self.name, self.dtype, self.ioType, self.byte, self.bit)
 
-# areas['PE'] = Process Inputs
-# byte is the first number and bit is the second
-# i.e. ReadInput(plc,1,0,S7WLBit) will read Bool from %I1.1
-# datatype is usually S7WLBit
-def ReadInput(plc,byte,bit,datatype):
-    result = plc.read_area(areas['PE'],0,byte,datatype)
-    return get_bool(result,0,bit)
 
-# PA = Process outpus
-#def ReadIO(plc,byte,bit,datatype):
- #   result = plc.read_area(areas['PA'],0,byte,datatype)
- #   return get_bool(result,0,bit)
-
+# GLOBAL FUNCTIONS
 
 # this function will read the text file and save the IOs to dict
 def readTags():
@@ -115,23 +112,22 @@ def readTags():
 				ioType = address[1]
 				byte = address[2]
 				bit = address[4]
-				print ioType + byte + bit
+				#print ioType + byte + bit
 
 				# call the constructor
 				names[name[0]] = IOObject(name[0], dtype, ioType, byte, bit)
-
-			else:
-				print "Timers etc not supported"			
+			
+			# let the user know if there is any unsupported type of tags
+			else: print "\n" + name[2] + " is not supported, please use IOs only!"			
 
 def logToFile():
 
     for oPut in names:
 
-    	value = names[oPut].readIO()
-    	#print oPut
-    	#print names[oPut]
-    	#print nimi
-        print "\n" + names[oPut].returnName() + " " + str(value)
+    	thisIO = names[oPut]
+
+    	# read the certain IO
+    	value = thisIO.readIO()
 
         # time formatting
         datestamp = time.strftime('%Y-%m-%d')
@@ -140,19 +136,19 @@ def logToFile():
         # Edges
         #edge = thisIO+"Edge"
 
-        # Logging for mag solenoid
-        if value == True:
+        # Logging only if this IO is True
+        if value == True and thisIO.returnEdgeFlag():
 
             # write to file
-            f.write('\n' + names[oPut].returnName())
+            f.write(thisIO.returnName() + "," + thisIO.returnIoType())
             f.write("," + datestamp + "," + timestamp + '\n')
-            print("event logged")
+            print('\n' + thisIO.returnName() + " event logged")
             # Edge flag to false
-            #edge = False
+            thisIO.resetEdgeFlag()
 
         # From falling edge "reset" the edge flags to True
-        #if key == False:
-           # key = True
+        if value == False:
+        	thisIO.setEdgeFlag()
 
 
 # MAIN LOOP
@@ -192,7 +188,7 @@ if __name__=="__main__":
         f.close()
 
         # Wait for five seconds
-        time.sleep(1)
+        time.sleep(0.1)
 
     # Disconnect from plc
     plc.disconnect()
