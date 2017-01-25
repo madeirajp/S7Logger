@@ -75,6 +75,9 @@ class IOObject:
 	    	result = plc.read_area(areas['PA'],0,int(self.byte),S7WLBit)
         if self.ioType == "I":
 		    result = plc.read_area(areas['PE'],0,int(self.byte),S7WLBit)
+        if self.ioType == "M":
+		    result = plc.read_area(areas['MK'],0,int(self.byte),S7WLBit)
+
 
 	    # return the value
         return get_bool(result,0,int(self.bit))
@@ -104,21 +107,23 @@ def readTags():
         # ignore files starting with hashtag
         if not name[0] == "#":
 
-			address = list(name[3])
+        	# sorry about this mess, memory addresses were tough for me
+			address = name[3].split(".")
+			#print address
 			dtype = name[2]
-
-			# separate address to type, byte, bit and exclude timers etc
-			if len(address) == 5:
-				ioType = address[1]
-				byte = address[2]
-				bit = address[4]
-				#print ioType + byte + bit
-
+			addresslist = list(address[0])
+			ioType = addresslist[1]
+			byte = ''.join(addresslist[2:])
+			
+			# Memory types without byte,bit type of address are not supported
+			if len(address) > 1:
+				# prevent indexerror
+				bit = address[1]
 				# call the constructor
 				names[name[0]] = IOObject(name[0], dtype, ioType, byte, bit)
-			
 			# let the user know if there is any unsupported type of tags
-			else: print "\n" + name[2] + " is not supported, please use IOs only!"			
+			else: 
+				print "\nNOTICE: " + name[2] + " is not supported!"			
 
 def logToFile():
 
@@ -168,11 +173,18 @@ if __name__=="__main__":
     readTags()
 
     # print all the IO objects to console just to make sure 
-    print "\n" + "These " + str(IOObject.IOCount) + " IOs will be logged: "
-    print "#######################"
+    print "These " + str(IOObject.IOCount) + " memory addresses will be logged: "
     for x in names:
-        print names[x]
-    print "#######################" + "\n"
+        print "  " + str(names[x])
+
+    # just a little fun to console.. sorry I was tired
+    print "Initializing",
+    for x in range(0, IOObject.IOCount):
+    	print ".",
+    	time.sleep(0.5)
+
+
+    print '\n' + "Use CTRL + C to end logging." + '\n'
 
     try:
 	    # Scanning loop
@@ -202,3 +214,5 @@ if __name__=="__main__":
     	for line in logFile:
     		print line
         plc.disconnect()
+        logFile.close()
+        print "Workfile closed. Bye!"
