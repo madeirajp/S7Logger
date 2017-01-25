@@ -29,10 +29,13 @@ class IOObject:
     IOCount = 0
 
     # constructor
-    def __init__(self, name, dtype, address):
+    def __init__(self, name, dtype, ioType, byte, bit):
         self.name = name
         self.dtype = dtype
-        self.address = address
+        self.ioType = ioType
+        self.byte = byte
+        self.bit = bit
+        self.reading = 0
         IOObject.IOCount += 1
 
     # display the count
@@ -40,8 +43,20 @@ class IOObject:
         print IOObject.IOCount
 
     # display something else
-    def displayIO(self):
-        print self.name
+    def returnName(self):
+        return self.name
+
+    def returnType(self):
+    	return self.dtype
+
+    def returnIoType(self):
+    	return self.ioType
+
+    def returnByte(self):
+    	return self.Byte
+
+    def returnBit(self):
+    	return self.Bit
 
     # flag for edge detection
     def setEdgeFlag(self):
@@ -51,21 +66,27 @@ class IOObject:
     def resetEdgeFlag(self):
         self.edgeFlag = False
 
+    def readIO(self):
+	    result = plc.read_area(areas['PA'],0,int(self.byte),S7WLBit)
+	    #print "IO read"
+	    return get_bool(result,0,int(self.bit))
+
     # for printing human-readable things about our objects
     def __str__(self):
-        return "%s %s %s" % (self.name, self.dtype, self.address)
+        return "%s %s %s %s %s" % (self.name, self.dtype, self.ioType, self.byte, self.bit)
 
 # areas['PE'] = Process Inputs
 # byte is the first number and bit is the second
 # i.e. ReadInput(plc,1,0,S7WLBit) will read Bool from %I1.1
+# datatype is usually S7WLBit
 def ReadInput(plc,byte,bit,datatype):
     result = plc.read_area(areas['PE'],0,byte,datatype)
     return get_bool(result,0,bit)
 
-# PA = Process IOs
-def ReadIO(plc,byte,bit,datatype):
-    result = plc.read_area(areas['PA'],0,byte,datatype)
-    return get_bool(result,0,bit)
+# PA = Process outpus
+#def ReadIO(plc,byte,bit,datatype):
+ #   result = plc.read_area(areas['PA'],0,byte,datatype)
+ #   return get_bool(result,0,bit)
 
 
 # this function will read the text file and save the IOs to dict
@@ -85,18 +106,32 @@ def readTags():
 
         # ignore files starting with hashtag
         if not name[0] == "#":
-            # save to dict names by name.. gosh
-            names[name[0]] = IOObject(name[0], name[2], name[3])
+
+			address = list(name[3])
+			dtype = name[2]
+
+			# separate address to type, byte, bit and exclude timers etc
+			if len(address) == 5:
+				ioType = address[1]
+				byte = address[2]
+				bit = address[4]
+				print ioType + byte + bit
+
+				# call the constructor
+				names[name[0]] = IOObject(name[0], dtype, ioType, byte, bit)
+
+			else:
+				print "Timers etc not supported"			
 
 def logToFile():
 
-    for x in names:
+    for oPut in names:
 
-        # save the IO values
-        #thisIO = ReadIO(**x[1])
-
-        #print thisIO
-        print x
+    	value = names[oPut].readIO()
+    	#print oPut
+    	#print names[oPut]
+    	#print nimi
+        print "\n" + names[oPut].returnName() + " " + str(value)
 
         # time formatting
         datestamp = time.strftime('%Y-%m-%d')
@@ -106,10 +141,12 @@ def logToFile():
         #edge = thisIO+"Edge"
 
         # Logging for mag solenoid
-        if x:
+        if value == True:
+
             # write to file
-            f.write('\n' + x)
+            f.write('\n' + names[oPut].returnName())
             f.write("," + datestamp + "," + timestamp + '\n')
+            print("event logged")
             # Edge flag to false
             #edge = False
 
