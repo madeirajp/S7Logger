@@ -1,0 +1,41 @@
+	START	Default tag table	Bool	%I1.0		True	True	
+#	Mat_Sen	Default tag table	Bool	%I0.6		True	True	
+#	Mag_front	Default tag table	Bool	%I0.2		True	True	
+	Mag	Default tag table	Bool	%Q0.0		True	True	
+#	Swivel_going_to_mag	Default tag table	Bool	%M16.0		True	True	
+#	Mag_back	Default tag table	Bool	%I0.1		True	True	
+#	RESET	Default tag table	Bool	%I1.3		True	True	
+#	Armleft	Default tag table	Bool	%Q0.3		True	True	
+	Armright	Default tag table	Bool	%Q0.4		True	True	
+	Vacuum	Default tag table	Bool	%I0.3		True	True	
+#	Arm_take	Default tag table	Bool	%I0.4		True	True	
+#	Arm_put	Default tag table	Bool	%I0.5		True	True	
+	Vacuum ON	Default tag table	Bool	%Q0.1		True	True	
+	Vacuum OFF	Default tag table	Bool	%Q0.2		True	True	
+#	Swivel_at_mag	Default tag table	Bool	%M16.1		True	True	
+#	Swivel_going_to_downstream	Default tag table	Bool	%M16.2		True	True	
+#	Swivel_at_downstream	Default tag table	Bool	%M16.3		True	True	
+#	Eject_workpiece	Default tag table	Bool	%M16.4		True	True	
+#	Vacuum_ON	Default tag table	Bool	%M16.6		True	True	
+#	Vacuum_OFF	Default tag table	Bool	%M16.7		True	True	
+#	Timer_1	Default tag table	Timer	%T1		True	True	
+#	Timer_2	Default tag table	Timer	%T2		True	True	
+	Timer_3	Default tag table	Timer	%T3		True	True	
+#	Run_Permit	Default tag table	Bool	%M17.1		True	True	
+#	STOP	Default tag table	Bool	%I1.1		True	True	
+#	Input from following station	Default tag table	Bool	%I1.6		True	True	
+#	Ouput to following station	Default tag table	Bool	%Q1.6		True	True	
+#	Piece Delivered	Default tag table	Bool	%M17.5		True	True	
+#	Swivel_going_back_to_mag	Default tag table	Bool	%M17.7		True	True	
+#	Timer_4	Default tag table	Timer	%T4		True	True	
+#	Timer_5	Default tag table	Timer	%T5		True	True	
+#	Timer_6	Default tag table	Timer	%T6		True	True	
+#	Swivel_going_to_downstream_with_workpiece	Default tag table	Bool	%M19.0		True	True	
+#	Swivel_at_downstream_with_workpiece	Default tag table	Bool	%M19.1		True	True	
+	Prevent sequence restart	Default tag table	Bool	%M20.0		True	True	
+#	While_swivel_at_downstream_push_piece_out	Default tag table	Bool	%M19.2		True	True	
+#	Special Light 1	Default tag table	Bool	%Q1.2		True	True	
+#	Special Light 2	Default tag table	Bool	%Q1.3		True	True	
+#	START Light	Default tag table	Bool	%Q1.0		True	True	
+#	RESET Light	Default tag table	Bool	%Q1.1		True	True
+	Valemuuttuja	Default tag table	Bool	%M160.160		True	True	

@@ -1,3 +1,5 @@
+# Only Bool-type of memory values supported!
+
 # for taglists.txt: show all columns, select all (CTRL+A) and paste to notepad
 # columns should be in following order: Name, Tag table, Data type, Address
 # tags export to xlsx is not supported
@@ -8,7 +10,13 @@
 # IP-address for PLC
 ipaddress = "169.254.0.101"
 
-# import some stuff
+# Scan time
+scantime = 0.1
+
+# for offline developing
+offline = True
+
+# import some stuff from the Snap7 library
 import snap7.client as c
 from snap7.util import *
 from snap7.snap7types import *
@@ -70,14 +78,18 @@ class IOObject:
 
     def readIO(self):
 
-    	# PA = Process outpus
+    	# TODO: test this ONLINE
+    	if self.dtype != Bool:
+    		print "Only Boolean memory types are supported!"
+    		return
+    	# areas:
+    	# PA = Process outputs, PE = Process inputs, MK = Merkers
     	if self.ioType == "Q":
 	    	result = plc.read_area(areas['PA'],0,int(self.byte),S7WLBit)
         if self.ioType == "I":
 		    result = plc.read_area(areas['PE'],0,int(self.byte),S7WLBit)
         if self.ioType == "M":
 		    result = plc.read_area(areas['MK'],0,int(self.byte),S7WLBit)
-
 
 	    # return the value
         return get_bool(result,0,int(self.bit))
@@ -123,12 +135,16 @@ def readTags():
 				names[name[0]] = IOObject(name[0], dtype, ioType, byte, bit)
 			# let the user know if there is any unsupported type of tags
 			else: 
+				# instructions for user
 				print "\nNOTICE: " + name[2] + " is not supported!"			
 
 def logToFile():
 
+	# loop through objects
+	# TODO: not oPuts!
     for oPut in names:
 
+    	# renaming 
     	thisIO = names[oPut]
 
     	# read the certain IO
@@ -137,9 +153,6 @@ def logToFile():
         # time formatting
         datestamp = time.strftime('%Y-%m-%d')
         timestamp = time.strftime('%H:%M:%S')
-
-        # Edges
-        #edge = thisIO+"Edge"
 
         # Logging only if this IO is True and edge flag is on
         if value == True and thisIO.returnEdgeFlag():
@@ -166,8 +179,12 @@ if __name__=="__main__":
 
     # Create client
     plc = c.Client()
-    # Connect to Distribution station IP, rack 0, slot 2
-    plc.connect(ipaddress,0,2)
+    
+    # if we are offline we do not try to conncet
+    if offline == False:
+
+    	# arguments are for rack 0, slot 2
+    	plc.connect(ipaddress,0,2)
 
     # read the tags
     readTags()
@@ -181,33 +198,36 @@ if __name__=="__main__":
     print "Initializing",
     for x in range(0, IOObject.IOCount):
     	print ".",
-    	time.sleep(0.5)
+    	time.sleep(scantime)
 
-
+    # instructions for the user
     print '\n' + "Use CTRL + C to end logging." + '\n'
 
     try:
 	    # Scanning loop
 	    while True:
 	        
+	        # time formatting
 	        timestamp = time.strftime('%H:%M:%S')
 
 	        # Let the user know that scanning is active
-	        sys.stdout.write('\r Scanning PLC IOs on ' + timestamp)  
-	        #sys.stdout.flush()
+	        sys.stdout.write('\r Scanning PLC memory on ' + timestamp + ' with the scan time of ' + str(scantime) + ' seconds')  
+	        sys.stdout.flush()
 
 	        # Open the file where we log the data
 	        f = open('workfile.txt', 'a')
 
-	        # calling logging function
-	        logToFile()
+	        # if we are online, lets log
+	        if offline == False:
+	        	logToFile()
 
-	        # Close the workfile
+	        # Close the workfile so the logged data can be viewed while the script is running
 	        f.close()
 
 	        # Wait for five seconds
-	        time.sleep(0.1)
+	        time.sleep(scantime)
 
+	# to break out from loop in console (CTRL+C)
     except KeyboardInterrupt:
     	logFile = open('workfile.txt', 'r')
     	print "\n \n" + "Thank you for using S7Logger! Here are the contents of the workfile: " + "\n"
