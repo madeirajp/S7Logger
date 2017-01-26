@@ -116,8 +116,10 @@ def readTags():
         # how to not name variables.. 
         name = splitline[0].strip().split('\t')
 
+        #print list(name[0])
+
         # ignore files starting with hashtag
-        if not name[0] == "#":
+        if not list(name[0])[0] == "#":
 
         	# sorry about this mess, memory addresses were tough for me
 			address = name[3].split(".")

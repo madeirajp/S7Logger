@@ -1,3 +1,4 @@
+# Example tag list file. Thank you Tatu for these!
 	START	Default tag table	Bool	%I1.0		True	True	
 #	Mat_Sen	Default tag table	Bool	%I0.6		True	True	
 #	Mag_front	Default tag table	Bool	%I0.2		True	True	
