@@ -8,12 +8,16 @@ var dayObjects = []; // array to store days
 // data object
 var DayObject = {
     init: function (day, array) {
-        this.day = day
+        this.day = day;
         this.array = [];
     },
     describe: function () {
         var description = this.day;
         return description;
+    },
+    showArray: function () {
+        var items = this.array;
+        return items;
     }
 };
 
@@ -33,26 +37,17 @@ getFileFromServer(URL, function(text) {
     // if file is not found, display error message
     if (text === null) { console.log("404 ") }
     // if file is found, call function
-    else { textToArray(text); }
+    else { textToObjects(text); }
     } );
 
-// function for modifying the CSV file to javascript arrays
-function textToArray(text) {
-
-    // initializing variables and arrays
-    var vacuumCount = 0;
-    var datearray = [];
-    var vacuumarray = [];
-    var armarray = [];
-    var magarray = [];
+// function for modifying the CSV file to objects
+function textToObjects(text) {
 
     // split text into lines by \n (line break)
     var line = text.split('\n');
 
     // loop every line
     for (var i = 0; i < line.length; i++)  {
-
-        //console.log(line[i],line[i].length);
 
         // ignore empty lines if there is any
         if (line[i].length != 1) {
@@ -68,49 +63,29 @@ function textToArray(text) {
             var time = linesplit[3];
             var thisDay = Object.create(DayObject);
 
-            // TODO: make this its own function
-
-            //console.log(day + checkUnique(day));
-
             // first day
-            // we can't know the counts yet so they are not pushed
             if (dayObjects.length == 0) {
                 // just create day object
                 thisDay.init(day);
                 // and push it to array
                 dayObjects.push(thisDay);
-
-                // after the first day, just push unique dates to array
-            } else if (checkUnique(day, output)) { // if index i.e. day not found
-
-                // create day object
-                thisDay.init(day);
-                // push day object to array
-                dayObjects.push(thisDay);
+                // push to array
                 thisDay.array.push(output);
 
-
-                // data from non-unique days is still pushed to respective arrays
-            } else {
-                // find the day from dayObejcts and push to its array
-
+                // after the first day, just push unique dates to array
+                // checkUnique will push if there are multiple entries on same day
+            } else if (checkUnique(day, output)) { // if index i.e. day not found
+                // create day object
+                thisDay.init(day);
+                dayObjects.push(thisDay);
+                thisDay.array.push(output);
             }
-
-
-
-            // counters
-            if (output == "vacuumOn") { vacuumCount++; }
-
         }
-        //console.log(dayObjects.indexOf(thisDay.day));
-        //console.log(thisDay.day);
-
-
     }
 
     // call the visualizing function
-    visualize(datearray, vacuumarray, magarray, armarray);
-    console.log(dayObjects);
+    unitTest(); // check the array
+    visualize(objectsToArrays());
     //printAllDates();
 }
 
@@ -120,8 +95,8 @@ function checkUnique(daytocheck, output) {
         // if day is found in dayObjects, return false
         //console.log(dayObjects[i].thisDay);
         if (dayObjects[i].day == daytocheck) {
-            console.log("Multiple entries found for " + daytocheck);
-            console.log("Data pushed to array: " + output)
+            //console.log("Multiple entries found for " + daytocheck);
+            //console.log("Data pushed to array: " + output)
             dayObjects[i].array.push(output);
             return false;
         // if not found, return true
@@ -133,22 +108,40 @@ function checkUnique(daytocheck, output) {
 
 // to keep track what we have
 function printAllDates() {
-    console.log("Array: " + dayObjects);
-    console.log("Unique dates are: ");
+    console.log("Dates and their data: ");
     dayObjects.forEach(function (x) {
-        //console.log(x.describe())
-        console.log(dayObjects.day);
+        console.log(x.describe(), x.showArray());
+    });
+}
+
+function objectsToArrays() {
+
+    dateArray = [];
+
+    dayObjects.forEach(function (x) {
+        dateArray.push(x.describe());
     });
 
+    console.log("DateArray : " + dateArray);
+
+    return dateArray;
+}
+
+function unitTest() {
+    for (var i = 0; i < dayObjects.length; i++) {
+        if (dayObjects[i].array.length == 0) {
+            throw "Invalid array item with no data";
+        }
+    }
 }
 
 // visualizing function
-function visualize(datearray, vacuumarray, magarray, armarray) {
+function visualize(datearray) {
 
     // using Highcharts line-basic example here
     Highcharts.chart('container', {
         title: {
-            text: 'Kumulatiivinen laskuri Distribution Stationin outputeille',
+            text: 'Maxin kandi',
             x: -20 //center
         },
         subtitle: {
@@ -184,13 +177,7 @@ function visualize(datearray, vacuumarray, magarray, armarray) {
         // output arrays are here:
         series: [{
             name: 'Vacuum',
-            data: vacuumarray
-        }, {
-            name: 'Mag',
-            data: magarray
-        }, {
-            name: 'Arm',
-            data: armarray
+            data: [1, 3, 2, 8, 4]
         }]
     });
 }
