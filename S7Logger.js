@@ -3,11 +3,13 @@
 // where CSV file is stored
 var URL = "https://dl.dropboxusercontent.com/u/3685401/S7Logger/workfile.txt"
 var dayObjects = []; // array to store days
+//var dataArray = []; NOT GLOBAL BUT
 
 // data object
 var DayObject = {
-    init: function (day) {
-        this.day = day;
+    init: function (day, array) {
+        this.day = day
+        this.array = [];
     },
     describe: function () {
         var description = this.day;
@@ -66,10 +68,6 @@ function textToArray(text) {
             var time = linesplit[3];
             var thisDay = Object.create(DayObject);
 
-            //console.log(i,output, type, day, time);
-
-
-            // pushing only unique dates to the datearray
             // TODO: make this its own function
 
             //console.log(day + checkUnique(day));
@@ -77,23 +75,25 @@ function textToArray(text) {
             // first day
             // we can't know the counts yet so they are not pushed
             if (dayObjects.length == 0) {
+                // just create day object
                 thisDay.init(day);
-                dayObjects.push({thisDay: day, data: output});
-                //console.log(dayObjects);
+                // and push it to array
+                dayObjects.push(thisDay);
 
-                //console.log(thisDay.day);
+                // after the first day, just push unique dates to array
+            } else if (checkUnique(day, output)) { // if index i.e. day not found
 
-                // remaining, unique dates and counts
-                //
-            } else if (checkUnique(day)) { // if index i.e. day not found
+                // create day object
                 thisDay.init(day);
-                //dayObjects.push(thisDay);
-                dayObjects.push({thisDay: day, data: output});
+                // push day object to array
+                dayObjects.push(thisDay);
+                thisDay.array.push(output);
 
-                //console.log("new day found in CSV ");
 
-                // push counters to respective arrays
-                vacuumarray.push(vacuumCount);
+                // data from non-unique days is still pushed to respective arrays
+            } else {
+                // find the day from dayObejcts and push to its array
+
             }
 
 
@@ -115,11 +115,14 @@ function textToArray(text) {
 }
 
 // Unique checking function to days
-function checkUnique(daytocheck) {
+function checkUnique(daytocheck, output) {
     for (var i=0; i < dayObjects.length; i++) {
         // if day is found in dayObjects, return false
+        //console.log(dayObjects[i].thisDay);
         if (dayObjects[i].day == daytocheck) {
             console.log("Multiple entries found for " + daytocheck);
+            console.log("Data pushed to array: " + output)
+            dayObjects[i].array.push(output);
             return false;
         // if not found, return true
         } else {
