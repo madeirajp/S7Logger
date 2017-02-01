@@ -3,21 +3,25 @@
 // where CSV file is stored
 var URL = "https://dl.dropboxusercontent.com/u/3685401/S7Logger/workfile.txt"
 var dayObjects = []; // array to store days
-//var dataArray = []; NOT GLOBAL BUT
 
 // data object
 var DayObject = {
-    init: function (day, array) {
+    init: function (day, allArray) {
         this.day = day;
-        this.array = [];
+        this.allArray = [];
+        this.actionArray = [];
+
     },
     describe: function () {
         var description = this.day;
         return description;
     },
     showArray: function () {
-        var items = this.array;
+        var items = this.allArray;
         return items;
+    },
+    addAction: function (action) {
+        this.actionArray.push(action);
     }
 };
 
@@ -33,6 +37,7 @@ function getFileFromServer(url, doneCallback) {
         if (xhr.readyState === 4) {
             doneCallback(xhr.status == 200 ? xhr.responseText : null);
         } } }
+
 getFileFromServer(URL, function(text) {
     // if file is not found, display error message
     if (text === null) { console.log("404 ") }
@@ -70,7 +75,7 @@ function textToObjects(text) {
                 // and push it to array
                 dayObjects.push(thisDay);
                 // push to array
-                thisDay.array.push(output);
+                thisDay.allArray.push(output);
 
                 // after the first day, just push unique dates to array
                 // checkUnique will push if there are multiple entries on same day
@@ -78,7 +83,7 @@ function textToObjects(text) {
                 // create day object
                 thisDay.init(day);
                 dayObjects.push(thisDay);
-                thisDay.array.push(output);
+                thisDay.allArray.push(output);
             }
         }
     }
@@ -86,8 +91,10 @@ function textToObjects(text) {
     // call the visualizing function
     unitTest(); // check the array
     visualize(objectsToArrays());
-    dataToArrays();
+    //dataToArrays();
     //printAllDates();
+    //countActions(thisDay.allArray);
+
 }
 
 // Unique checking function to days
@@ -98,7 +105,7 @@ function checkUnique(daytocheck, output) {
         if (dayObjects[i].day == daytocheck) {
             //console.log("Multiple entries found for " + daytocheck);
             //console.log("Data pushed to array: " + output)
-            dayObjects[i].array.push(output);
+            dayObjects[i].allArray.push(output);
             return false;
         // if not found, return true
         } else {
@@ -107,7 +114,7 @@ function checkUnique(daytocheck, output) {
     return true;
 }
 
-// to keep track what we have
+// to keep track what we have, dont touch
 function printAllDates() {
     console.log("Dates and their data: ");
     dayObjects.forEach(function (x) {
@@ -119,30 +126,66 @@ function objectsToArrays() {
     dateArray = [];
     dayObjects.forEach(function (x) {
         dateArray.push(x.describe());
+        console.log(x.describe());
+        countActions(x.showArray());
     });
-    console.log("DateArray : " + dateArray);
+    //console.log("DateArray : " + dateArray);
     return dateArray;
 }
 
-
+/*
 function dataToArrays() {
 
-    //dataArray = [];
-    //console.log(dayObjects.showArray());
-    console.log(dayObjects[1].array[0]);
-        //console.log(x.showArray());
-        //console.log(x.showArray().length);
-        //for (var i=0; i < x.showArray().length; i++) {
-           // dataArray.push(x.showArray()[i]);
-       // }
+    //console.log(dayObjects.length);
 
-       // console.log(dataArray);
-   // });
+    dataArray = [];
+
+    // loop through dayObjects
+    for (var i=0; i < dayObjects.length; i++) {
+
+        var arrayOfThisDay = dayObjects[i].array;
+
+        console.log(dayObjects[i]);
+
+        //console.log(arrayOfThisDay.length);
+
+        // loop through actions of this day
+        for (var j=0; j < arrayOfThisDay.length; j++) {
+
+            //console.log(arrayOfThisDay[j]);
+
+
+
+            dataArray.push(arrayOfThisDay[j]);
+        }
+    }
+    //console.log(dataArray);
+} */
+
+
+// source: http://stackoverflow.com/questions/5667888/counting-the-occurrences-of-javascript-array-elements
+function countActions(arr) {
+    var a = [], b = [], prev;
+
+    arr.sort();
+    for ( var i = 0; i < arr.length; i++ ) {
+        if ( arr[i] !== prev ) {
+            a.push(arr[i]);
+            b.push(1);
+        } else {
+            b[b.length-1]++;
+        }
+        prev = arr[i];
+    }
+    console.log("Actions: " + a);
+    console.log("Counts: " + b);
+    console.log("##############");
+    return [a, b];
 }
 
 function unitTest() {
     for (var i = 0; i < dayObjects.length; i++) {
-        if (dayObjects[i].array.length == 0) {
+        if (dayObjects[i].allArray.length == 0) {
             throw "Invalid array item with no data";
         }
     }
