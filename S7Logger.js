@@ -2,9 +2,7 @@
 
 // where CSV file is stored
 var URL = "https://dl.dropboxusercontent.com/u/3685401/S7Logger/workfile.txt"
-
-// array to store days
-var dayObjects = [];
+var dayObjects = []; // array to store days
 
 // data object
 var DayObject = {
@@ -17,7 +15,6 @@ var DayObject = {
     }
 };
 
-// this might be from stackoverflow
 function getFileFromServer(url, doneCallback) {
     var xhr;
     xhr = new XMLHttpRequest();
@@ -29,20 +26,13 @@ function getFileFromServer(url, doneCallback) {
     function handleStateChange() {
         if (xhr.readyState === 4) {
             doneCallback(xhr.status == 200 ? xhr.responseText : null);
-        }
-    }
-}
-
-// calling file getting function
+        } } }
 getFileFromServer(URL, function(text) {
-
-    // if file is not found
+    // if file is not found, display error message
     if (text === null) { console.log("404 ") }
-
     // if file is found, call function
     else { textToArray(text); }
-    }
-);
+    } );
 
 // function for modifying the CSV file to javascript arrays
 function textToArray(text) {
@@ -53,8 +43,6 @@ function textToArray(text) {
     var vacuumarray = [];
     var armarray = [];
     var magarray = [];
-
-
 
     // split text into lines by \n (line break)
     var line = text.split('\n');
@@ -90,7 +78,8 @@ function textToArray(text) {
             // we can't know the counts yet so they are not pushed
             if (dayObjects.length == 0) {
                 thisDay.init(day);
-                dayObjects.push(thisDay);
+                dayObjects.push({thisDay: day, data: output});
+                //console.log(dayObjects);
 
                 //console.log(thisDay.day);
 
@@ -98,13 +87,16 @@ function textToArray(text) {
                 //
             } else if (checkUnique(day)) { // if index i.e. day not found
                 thisDay.init(day);
-                dayObjects.push(thisDay);
+                //dayObjects.push(thisDay);
+                dayObjects.push({thisDay: day, data: output});
 
                 //console.log("new day found in CSV ");
 
                 // push counters to respective arrays
                 vacuumarray.push(vacuumCount);
             }
+
+
 
             // counters
             if (output == "vacuumOn") { vacuumCount++; }
@@ -113,40 +105,38 @@ function textToArray(text) {
         //console.log(dayObjects.indexOf(thisDay.day));
         //console.log(thisDay.day);
 
+
     }
-
-    console.log(dayObjects);
-
-    // print all of the dates
-    //console.log(dayObjects);
-
-    dayObjects.forEach(function (x) {
-        console.log(x.describe())
-    });
 
     // call the visualizing function
     visualize(datearray, vacuumarray, magarray, armarray);
+    console.log(dayObjects);
+    //printAllDates();
 }
 
-// horrible unique checking function
+// Unique checking function to days
 function checkUnique(daytocheck) {
     for (var i=0; i < dayObjects.length; i++) {
-
-        //console.log(dayObjects[i].day);
-        //console.log(daytocheck);
-        //console.log(dayObjects[i].day === daytocheck);
-
         // if day is found in dayObjects, return false
         if (dayObjects[i].day == daytocheck) {
-            console.log("Multiple entry found " + daytocheck);
+            console.log("Multiple entries found for " + daytocheck);
             return false;
-
         // if not found, return true
         } else {
             //console.log("Unique day found" + daytocheck);
-    }
-}
+    } }
     return true;
+}
+
+// to keep track what we have
+function printAllDates() {
+    console.log("Array: " + dayObjects);
+    console.log("Unique dates are: ");
+    dayObjects.forEach(function (x) {
+        //console.log(x.describe())
+        console.log(dayObjects.day);
+    });
+
 }
 
 // visualizing function
