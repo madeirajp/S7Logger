@@ -86,6 +86,7 @@ function textToObjects(text) {
     // call the visualizing function
     unitTest(); // check the array
     visualize(objectsToArrays());
+    dataToArrays();
     //printAllDates();
 }
 
@@ -115,16 +116,28 @@ function printAllDates() {
 }
 
 function objectsToArrays() {
-
     dateArray = [];
-
     dayObjects.forEach(function (x) {
         dateArray.push(x.describe());
     });
-
     console.log("DateArray : " + dateArray);
-
     return dateArray;
+}
+
+
+function dataToArrays() {
+
+    //dataArray = [];
+    //console.log(dayObjects.showArray());
+    console.log(dayObjects[1].array[0]);
+        //console.log(x.showArray());
+        //console.log(x.showArray().length);
+        //for (var i=0; i < x.showArray().length; i++) {
+           // dataArray.push(x.showArray()[i]);
+       // }
+
+       // console.log(dataArray);
+   // });
 }
 
 function unitTest() {
