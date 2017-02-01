@@ -1,17 +1,31 @@
 <!DOCTYPE HTML>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>Ohjelmoitavilta logiikoilta kerätyn tiedon visualisointi</title>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Ohjelmoitavilta logiikoilta kerätyn tiedon visualisointi</title>
 
-		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-		<style type="text/css">
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <style type="text/css">
 ${demo.css}
-		</style>
-		<script type="text/javascript">
+        </style>
+        <script type="text/javascript">
 
 // where CSV file is stored
-var URL = "https://dl.dropboxusercontent.com/u/3685401/kandi%20public/workfile.txt"
+var URL = "https://dl.dropboxusercontent.com/u/3685401/S7Logger/workfile.txt"
+
+// array to store days
+var dayObjects = [];
+
+// data object
+var DayObject = {
+    init: function (day) {
+        this.day = day;
+    },
+    describe: function () {
+        var description = this.day;
+        return description;
+    }
+};
 
 // this might be from stackoverflow
 function getFileFromServer(url, doneCallback) {
@@ -32,7 +46,7 @@ function getFileFromServer(url, doneCallback) {
 // calling file getting function
 getFileFromServer(URL, function(text) {
 
-	// if file is not found
+    // if file is not found
     if (text === null) { console.log("404 ") }
 
     // if file is found, call function
@@ -43,14 +57,14 @@ getFileFromServer(URL, function(text) {
 // function for modifying the CSV file to javascript arrays
 function textToArray(text) {
 
-	// initializing variables and arrays
+    // initializing variables and arrays
     var vacuumCount = 0;
-    var magCount = 0;
-    var armCount = 0;
     var datearray = [];
     var vacuumarray = [];
     var armarray = [];
     var magarray = [];
+
+
 
     // split text into lines by \n (line break)
     var line = text.split('\n');
@@ -58,53 +72,97 @@ function textToArray(text) {
     // loop every line
     for (var i = 0; i < line.length; i++)  {
 
-    	// ignore empty lines if there is nay
-        if (line[i] != " ") {
+        //console.log(line[i],line[i].length);
 
-	        //split every line by comma
-	        var linesplit = line[i].split(",");
+        // ignore empty lines if there is any
+        if (line[i].length != 1) {
 
-	        // find values
-	        // example line: "vacuumOn,True,2017-01-23,16:07:01"
-	        var output = linesplit[0];
-	        var day = linesplit[2];
-	        var time = linesplit[3];
+            //split every line by comma
+            var linesplit = line[i].split(",");
 
-// pushing only unique dates to the datearray
-// TODO: make this its own function
+            // find values
+            // example line: "vacuumOn,I,2017-01-23,16:07:01"
+            var output = linesplit[0];
+            var type = linesplit[1];
+            var day = linesplit[2];
+            var time = linesplit[3];
+            var thisDay = Object.create(DayObject);
 
-	        // first day
-	       	// we can't know the counts yet so they are not pushed
-	        if (datearray.length == 0) {
-	        	datearray[i] = day;
+            //console.log(i,output, type, day, time);
 
-	        // remaining, unique dates and counts
-	        } else if (datearray.indexOf(day) == -1) { // if index ie day not found
-	        	console.log("new day found in CSV");
-	        	datearray.push(day);
 
-	        	// push counters to respective arrays
-	        	vacuumarray.push(vacuumCount);
-	       		armarray.push(armCount);
-	        	magarray.push(magCount);
-	        }
+            // pushing only unique dates to the datearray
+            // TODO: make this its own function
 
-			// counters
-	        if (output == "vacuumOn") {	vacuumCount++; }
-	        if (output == "magSolenoid") { magCount++; }	        
-	        if (output == "armRight") {	armCount++; }
+            //console.log(day + checkUnique(day));
+
+            // first day
+            // we can't know the counts yet so they are not pushed
+            if (dayObjects.length == 0) {
+                thisDay.init(day);
+                dayObjects.push(thisDay);
+
+                //console.log(thisDay.day);
+
+                // remaining, unique dates and counts
+                //
+            } else if (checkUnique(day)) { // if index i.e. day not found
+                thisDay.init(day);
+                dayObjects.push(thisDay);
+
+                //console.log("new day found in CSV ");
+
+                // push counters to respective arrays
+                vacuumarray.push(vacuumCount);
+            }
+
+            // counters
+            if (output == "vacuumOn") { vacuumCount++; }
 
         }
+        //console.log(dayObjects.indexOf(thisDay.day));
+        //console.log(thisDay.day);
+
     }
+
+    console.log(dayObjects);
+
+    // print all of the dates
+    //console.log(dayObjects);
+
+    dayObjects.forEach(function (x) {
+        console.log(x.describe())
+    });
 
     // call the visualizing function
     visualize(datearray, vacuumarray, magarray, armarray);
 }
 
+// horrible unique checking function
+function checkUnique(daytocheck) {
+    for (var i=0; i < dayObjects.length; i++) {
+
+        //console.log(dayObjects[i].day);
+        //console.log(daytocheck);
+        //console.log(dayObjects[i].day === daytocheck);
+
+        // if day is found in dayObjects, return false
+        if (dayObjects[i].day == daytocheck) {
+            console.log("Multiple entry found " + daytocheck);
+            return false;
+
+        // if not found, return true
+        } else {
+            //console.log("Unique day found" + daytocheck);
+    }
+}
+    return true;
+}
+
 // visualizing function
 function visualize(datearray, vacuumarray, magarray, armarray) {
 
-	// using Highcharts line-basic example here
+    // using Highcharts line-basic example here
     Highcharts.chart('container', {
         title: {
             text: 'Kumulatiivinen laskuri Distribution Stationin outputeille',
@@ -116,13 +174,13 @@ function visualize(datearray, vacuumarray, magarray, armarray) {
         },
         xAxis: {
 
-        	// array of days here
+            // array of days here
             categories: datearray
         },
         yAxis: {
 
-        	// only integers
-        	allowDecimals: false,
+            // only integers
+            allowDecimals: false,
 
             title: {
                 text: 'Highs'
@@ -152,10 +210,10 @@ function visualize(datearray, vacuumarray, magarray, armarray) {
             data: armarray
         }]
     });
-};
-		</script>
-	</head>
-	<body>
+}
+        </script>
+    </head>
+    <body>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 
@@ -175,7 +233,7 @@ function visualize(datearray, vacuumarray, magarray, armarray) {
 <H3>Simply Automationized -blogi</H3>
 </a>
 
-<a href="https://dl.dropboxusercontent.com/u/3685401/kandi%20public/workfile.txt">
+<a href="https://dl.dropboxusercontent.com/u/3685401/S7Logger/workfile.txt">
 <H3>CSV-tietokanta</H3>
 </a>
 
