@@ -155,21 +155,40 @@ def logToFile():
         datestamp = time.strftime('%Y-%m-%d')
         timestamp = time.strftime('%H:%M:%S')
 
+        # dayList is one row to countfile
+        dayList = []
+
         # Logging only if this IO is True and edge flag is on
         if value == True and thisIO.returnEdgeFlag():
             # write to file the name and type
             f.write(thisIO.returnName() + "," + thisIO.returnIoType())
 
-            fc.write(datestamp + "\n")
+            #fc.write(datestamp + "\n")
+
+            # first item in row is day
+            dayList.append(datestamp);
+            j = 0
+            for y in range(0, len(IOList)):
+                #print thisIO.returnName()
+                #print IOList[j]
+                if IOList[j] == thisIO.returnName():
+                    print "IO found"
+                    fc.write(IOList[j])
+                    #dayList[y] = dayList[y]+1
+                j = j+1
+
+                print dayList
 
             # and of cource date- and timestamp, duh
             f.write("," + datestamp + "," + timestamp + '\n')
 
             # also print something to console
-            print('\n' + thisIO.returnName() + " event logged")
+            #print('\n' + thisIO.returnName() + " event logged")
 
             # reset the edge flag
             thisIO.resetEdgeFlag()
+
+
 
         # From falling edge set the edge flag
         if value == False:
@@ -202,15 +221,18 @@ if __name__ == "__main__":
     # write to count file
     fc.write("Categories,")
     i = 0
+    IOList = []
+    IOList.append("Categories,")
     # loop through dict
     for x in names:
 
-        print "  " + str(names[x])
+        #print "  " + str(names[x])
 
         # fc is the count file for highcharts
         # here we list all of the names which are logged
         # TODO: own function
         fc.write(names[x].returnName())
+        IOList.append(names[x].returnName())
 
         # to not write comma after last name
         i = i + 1
@@ -219,6 +241,8 @@ if __name__ == "__main__":
 
     # endline
     fc.write("\n")
+
+    print "IOList: " + str(IOList)
 
     # just a little fun to console.. sorry I was tired
     print "Initializing",
@@ -265,6 +289,7 @@ if __name__ == "__main__":
         print "\n \n" + "Thank you for using S7Logger! Here are the contents of the workfile: " + "\n"
         for line in logFile:
             print line
+
         plc.disconnect()
         logFile.close()
         print "Workfile closed. Bye!"
