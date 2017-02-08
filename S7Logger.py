@@ -14,7 +14,7 @@ ipaddress = "169.254.0.101"
 scantime = 0.1
 
 # for offline developing
-offline = False
+offline = True
 
 # import some stuff from the Snap7 library
 import snap7.client as c
@@ -142,6 +142,9 @@ def readTags():
 
 def logToFile():
     # loop through objects
+
+    dayList = []
+
     # TODO: not oPuts but memory objects?!
     for oPut in names:
 
@@ -156,28 +159,12 @@ def logToFile():
         timestamp = time.strftime('%H:%M:%S')
 
         # dayList is one row to countfile
-        dayList = []
+
 
         # Logging only if this IO is True and edge flag is on
         if value == True and thisIO.returnEdgeFlag():
             # write to file the name and type
             f.write(thisIO.returnName() + "," + thisIO.returnIoType())
-
-            #fc.write(datestamp + "\n")
-
-            # first item in row is day
-            dayList.append(datestamp);
-            j = 0
-            for y in range(0, len(IOList)):
-                #print thisIO.returnName()
-                #print IOList[j]
-                if IOList[j] == thisIO.returnName():
-                    print "IO found"
-                    fc.write(IOList[j])
-                    #dayList[y] = dayList[y]+1
-                j = j+1
-
-                print dayList
 
             # and of cource date- and timestamp, duh
             f.write("," + datestamp + "," + timestamp + '\n')
@@ -187,8 +174,6 @@ def logToFile():
 
             # reset the edge flag
             thisIO.resetEdgeFlag()
-
-
 
         # From falling edge set the edge flag
         if value == False:
@@ -213,36 +198,10 @@ if __name__ == "__main__":
     # read the tags
     readTags()
 
-    # Open the file where we log the data
-    fc = open('countfile.txt', 'a')
-
     # print all the IO objects to console just to make sure
     print "These " + str(IOObject.IOCount) + " memory addresses will be logged: "
-    # write to count file
-    fc.write("Categories,")
-    i = 0
-    IOList = []
-    IOList.append("Categories,")
-    # loop through dict
     for x in names:
-
-        #print "  " + str(names[x])
-
-        # fc is the count file for highcharts
-        # here we list all of the names which are logged
-        # TODO: own function
-        fc.write(names[x].returnName())
-        IOList.append(names[x].returnName())
-
-        # to not write comma after last name
-        i = i + 1
-        if (i != len(names)):
-           fc.write(",")
-
-    # endline
-    fc.write("\n")
-
-    print "IOList: " + str(IOList)
+        print "  " + str(names[x])
 
     # just a little fun to console.. sorry I was tired
     print "Initializing",
@@ -266,18 +225,13 @@ if __name__ == "__main__":
             sys.stdout.flush()
 
             # Open the file where we log the data
-            f = open('workfile.txt', 'a')
-            # Open the file where we log the data
-            fc = open('countfile.txt', 'a')
-
-
+            f = open('log.csv', 'a')
 
             # if we are online, lets log
             if offline == False:
                 logToFile()
 
             # Close the workfile so the logged data can be viewed while the script is running
-            fc.close()
             f.close()
 
             # Wait for five seconds
