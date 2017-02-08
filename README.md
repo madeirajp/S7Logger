@@ -11,4 +11,4 @@ Siemens S7-300 data logger and visualizer.
 ##And for helpful examples in:
 * http://simplyautomationized.blogspot.fi/search/label/snap7
 
-![image](http://i.imgur.com/lX1rDIC.png)
+![image](http://i.imgur.com/lX1rDIC.png?1)
