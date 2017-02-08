@@ -7,6 +7,7 @@ Siemens S7-300 data logger and visualizer.
 * https://github.com/fbrussa/NovixPivotJS
 * https://github.com/nicolaskruchten/pivottable
 * https://github.com/highcharts/highcharts
+* https://github.com/mholt/PapaParse
 
 ##And for helpful examples in:
 * http://simplyautomationized.blogspot.fi/search/label/snap7
