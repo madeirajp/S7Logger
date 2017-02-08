@@ -1,6 +1,14 @@
 # S7Logger
 This is the demonstrative part of my bachelors thesis:
-Siemens S7-300 data logger based on Snap7 and visualization web page based on Highcharts.
+Siemens S7-300 data logger and visualizer.
 
-Thanks to guys who have developed the https://github.com/gijzelaerr/python-snap7 and 
-http://simplyautomationized.blogspot.fi/search/label/snap7 for helpful examples.
+##Thanks to developers of: 
+* https://github.com/gijzelaerr/python-snap7
+* https://github.com/fbrussa/NovixPivotJS
+* https://github.com/nicolaskruchten/pivottable
+* https://github.com/highcharts/highcharts
+
+##And for helpful examples in:
+* http://simplyautomationized.blogspot.fi/search/label/snap7
+
+![image](http://i.imgur.com/lX1rDIC.png)
