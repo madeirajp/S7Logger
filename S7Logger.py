@@ -10,22 +10,22 @@
 # IP-address for PLC
 ipaddress = "169.254.0.101"
 
-# Scan time
+# Scan time in seconds
 scantime = 0.1
 
 # for offline developing
 offline = True
 
-# import some stuff from the Snap7 library
+# import some stuff
 import snap7.client as c
 from snap7.util import *
 from snap7.snap7types import *
-
-# time library for sleep function and for logging local time
 import time
-
-# sys library for nice console output
 import sys
+import threading
+import SimpleHTTPServer
+import SocketServer
+from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 # create dict to store IO objects
 names = {}
@@ -141,9 +141,6 @@ def readTags():
 
 
 def logToFile():
-    # loop through objects
-
-    dayList = []
 
     # TODO: not oPuts but memory objects?!
     for oPut in names:
@@ -157,9 +154,6 @@ def logToFile():
         # time formatting
         datestamp = time.strftime('%Y-%m-%d')
         timestamp = time.strftime('%H:%M:%S')
-
-        # dayList is one row to countfile
-
 
         # Logging only if this IO is True and edge flag is on
         if value == True and thisIO.returnEdgeFlag():
@@ -179,6 +173,12 @@ def logToFile():
         if value == False:
             thisIO.setEdgeFlag()
 
+
+# serving the local directory
+def my_tcp_server():
+    server = SocketServer.TCPServer(('', 8080), SimpleHTTPServer.SimpleHTTPRequestHandler)
+    print 'Started httpserver on port ', 8080
+    server.serve_forever()
 
 # MAIN LOOP
 if __name__ == "__main__":
@@ -210,9 +210,13 @@ if __name__ == "__main__":
         time.sleep(scantime)
 
     # instructions for the user
-    print '\n' + "Use CTRL + C to end logging." + '\n'
+    print '\n' + "Use CTRL + C to end logging if you are running in console." + '\n'
 
     try:
+
+        # serving the log file from local directory
+        threading.Thread(target=my_tcp_server).start()
+
         # Scanning loop
         while True:
 
@@ -221,7 +225,8 @@ if __name__ == "__main__":
 
             # Let the user know that scanning is active
             sys.stdout.write(
-                '\r Scanning PLC memory on ' + timestamp + ' with the scan time of ' + str(scantime) + ' seconds')
+                '\r Scanning PLC memory on ' + timestamp + ' with the scan time of ' + str(scantime) + ' seconds' +
+            ' on http://127.0.0.1:8080/S7PivotVisualizer.html')
             sys.stdout.flush()
 
             # Open the file where we log the data
