@@ -7,6 +7,8 @@
 # If there is need to debug, enable this
 # logging.basicConfig(level=logging.DEBUG)
 
+# If you destroy the log file, append manually Memory,Type,Date,Time, to the first row!
+
 # IP-address for PLC
 ipaddress = "169.254.0.101"
 
@@ -25,11 +27,14 @@ import sys
 import threading
 import SimpleHTTPServer
 import SocketServer
+import random
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 # create dict to store IO objects
 names = {}
 
+# using it globally for the offline
+offlineDate = "2017-03-01"
 
 # because OOP is the way to go
 class IOObject:
@@ -44,6 +49,7 @@ class IOObject:
         self.byte = byte
         self.bit = bit
         self.reading = 0
+        self.edgeFlag = False
         IOObject.IOCount += 1
 
     # display the count
@@ -78,10 +84,10 @@ class IOObject:
 
     def readIO(self):
 
-        # TODO: test this ONLINE
-        #if self.dtype != Bool:
-           # print "Only Boolean memory types are supported!"
-            #return
+        if self.dtype != "Bool":
+            print "Only Boolean memory types are supported!"
+            return
+
         # areas:
         # PA = Process outputs, PE = Process inputs, MK = Merkers
         if self.ioType == "Q":
@@ -139,14 +145,14 @@ def readTags():
                 # instructions for user
                 print "\nNOTICE: " + name[2] + " is not supported!"
 
-
+# actual logging
 def logToFile():
 
-    # TODO: not oPuts but memory objects?!
-    for oPut in names:
+    # Inputs, Outputs or Memory objects
+    for IOM in names:
 
         # renaming
-        thisIO = names[oPut]
+        thisIO = names[IOM]
 
         # read the certain IO
         value = thisIO.readIO()
@@ -173,6 +179,48 @@ def logToFile():
         if value == False:
             thisIO.setEdgeFlag()
 
+# random logging
+def offlineLogging():
+
+    # every minute, increment the day
+    if ((int(time.strftime('%S')) % 30) == 0):
+        global offlineDate
+        print offlineDate
+        s = "-"
+        date = offlineDate.split(s)[2]
+        month = offlineDate.split(s)[1]
+        year = offlineDate.split(s)[0]
+        date = int(date) + 1
+        seq = (year, month, str(date))
+        offlineDate = s.join(seq)
+        print offlineDate
+        time.sleep(1)
+        if date == 30:
+            raise NameError('Thank you for using offline mode!')
+
+    # Inputs, Outputs or Memory objects
+    #for IOM in names:
+    thisIO = names[random.choice(names.keys())]
+
+    timestamp = time.strftime('%H:%M:%S')
+
+        # but I still did it. Logging every five seconds
+    if (int(time.strftime('%S')) % 1) == 0:
+            # write to file the name and type
+        f.write(thisIO.returnName() + "," + thisIO.returnIoType())
+
+            # and of cource date- and timestamp, duh
+        f.write("," + offlineDate + "," + timestamp + '\n')
+
+            # also print something to console
+        #print('\n' + thisIO.returnName() + " random event logged")
+
+            # reset the edge flag
+        #thisIO.resetEdgeFlag()
+        time.sleep(1)
+
+            #time.sleep(randint(1, 10) / 100)
+
 
 # serving the local directory
 def my_tcp_server():
@@ -186,22 +234,22 @@ if __name__ == "__main__":
     # Create client
     plc = c.Client()
 
-    # if we are offline we do not try to conncet
-    if offline == False:
-
-        #try: TODO ERROR HANDLING
-            # arguments are for rack 0, slot 2
-        plc.connect(ipaddress, 0, 2)
-            #print "Make sure you are connected or use offline mode"
-
-
-    # read the tags
+    # read the tags and create objects
     readTags()
 
-    # print all the IO objects to console just to make sure
-    print "These " + str(IOObject.IOCount) + " memory addresses will be logged: "
-    for x in names:
-        print "  " + str(names[x])
+    # ONLINE: lets connect
+    if offline == False:
+        # arguments are for rack 0, slot 2
+        plc.connect(ipaddress, 0, 2)
+        # print all the IO objects to console just to make sure
+        print "These " + str(IOObject.IOCount) + " memory addresses will be logged: "
+        for x in names:
+            print "  " + str(names[x])
+        print "Online mode activated"
+
+    # OFFLINE: let the user know
+    else:
+        print "Offline mode activated"
 
     # just a little fun to console.. sorry I was tired
     print "Initializing",
@@ -223,18 +271,27 @@ if __name__ == "__main__":
             # time formatting
             timestamp = time.strftime('%H:%M:%S')
 
-            # Let the user know that scanning is active
-            sys.stdout.write(
-                '\r Scanning PLC memory on ' + timestamp + ' with the scan time of ' + str(scantime) + ' seconds' +
-            ' on http://127.0.0.1:8080/S7PivotVisualizer.html')
-            sys.stdout.flush()
-
             # Open the file where we log the data
             f = open('log.csv', 'a')
 
             # if we are online, lets log
             if offline == False:
+                # Let the user know that scanning is active
+                sys.stdout.write(
+                    '\r Scanning PLC memory on ' + timestamp + ' with the scan time of ' + str(scantime) + ' seconds' +
+                    ' on http://127.0.0.1:8080/S7PivotVisualizer.html')
+                sys.stdout.flush()
                 logToFile()
+
+            # if we are offline, generate something random for demonstrating
+            else:
+                sys.stdout.write(
+                    '\r Offline mode on ' + timestamp + ' with the scan time of ' + str(scantime) + ' seconds' +
+                    ' on http://127.0.0.1:8080/S7PivotVisualizer.html')
+                sys.stdout.flush()
+                offlineLogging()
+
+
 
             # Close the workfile so the logged data can be viewed while the script is running
             f.close()
