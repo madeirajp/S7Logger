@@ -7,16 +7,17 @@
 # If there is need to debug, enable this
 # logging.basicConfig(level=logging.DEBUG)
 
-# If you destroy the log file, append manually Memory,Type,Date,Time, to the first row!
+# If you destroy/wipe the log file, append manually Memory,Type,Date,Time, to the first row!
 
-# IP-address for PLC
+# IP-address for PLC, this is for the Distributing Station
 ipaddress = "169.254.0.101"
 
 # Scan time in seconds
 scantime = 0.1
 
-# for offline developing
-offline = True
+# for offline logging. Using fixed day which is then incremented
+offline = False
+offlineDate = "2017-03-01"
 
 # import some stuff
 import snap7.client as c
@@ -28,15 +29,9 @@ import threading
 import SimpleHTTPServer
 import SocketServer
 import random
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 
 # create dict to store IO objects
 names = {}
-
-# using it globally for the offline
-offlineDate = "2017-03-01"
-
-# because OOP is the way to go
 class IOObject:
     # counter for how many IOs we are logging
     IOCount = 0
@@ -103,9 +98,6 @@ class IOObject:
     # for printing human-readable things about our objects
     def __str__(self):
         return "%s %s %s %s %s" % (self.name, self.dtype, self.ioType, self.byte, self.bit)
-
-
-# GLOBAL FUNCTIONS
 
 # this function will read the text file and save the IOs to dict
 def readTags():
@@ -183,9 +175,9 @@ def logToFile():
 def offlineLogging():
 
     # every minute, increment the day
-    if ((int(time.strftime('%S')) % 30) == 0):
+    if ((int(time.strftime('%S')) % 20) == 0):
         global offlineDate
-        print offlineDate
+        #print offlineDate
         s = "-"
         date = offlineDate.split(s)[2]
         month = offlineDate.split(s)[1]
@@ -193,36 +185,21 @@ def offlineLogging():
         date = int(date) + 1
         seq = (year, month, str(date))
         offlineDate = s.join(seq)
-        print offlineDate
-        time.sleep(1)
+        print "Day changed to: " + offlineDate
+        time.sleep(random.randint(1,2))
         if date == 30:
             raise NameError('Thank you for using offline mode!')
 
-    # Inputs, Outputs or Memory objects
-    #for IOM in names:
+    # every second, log a random event
     thisIO = names[random.choice(names.keys())]
-
     timestamp = time.strftime('%H:%M:%S')
-
         # but I still did it. Logging every five seconds
     if (int(time.strftime('%S')) % 1) == 0:
-            # write to file the name and type
         f.write(thisIO.returnName() + "," + thisIO.returnIoType())
-
-            # and of cource date- and timestamp, duh
         f.write("," + offlineDate + "," + timestamp + '\n')
+        time.sleep(random.randint(1,2))
 
-            # also print something to console
-        #print('\n' + thisIO.returnName() + " random event logged")
-
-            # reset the edge flag
-        #thisIO.resetEdgeFlag()
-        time.sleep(1)
-
-            #time.sleep(randint(1, 10) / 100)
-
-
-# serving the local directory
+# serving the local directory, used for providing log.csv to the frontend
 def my_tcp_server():
     server = SocketServer.TCPServer(('', 8080), SimpleHTTPServer.SimpleHTTPRequestHandler)
     print 'Started httpserver on port ', 8080
@@ -291,15 +268,13 @@ if __name__ == "__main__":
                 sys.stdout.flush()
                 offlineLogging()
 
-
-
             # Close the workfile so the logged data can be viewed while the script is running
             f.close()
 
             # Wait for five seconds
             time.sleep(scantime)
 
-        # to break out from loop in console (CTRL+C)
+    # to break out from loop in console (CTRL+C)
     except KeyboardInterrupt:
         logFile = open('workfile.txt', 'r')
         print "\n \n" + "Thank you for using S7Logger! Here are the contents of the workfile: " + "\n"
